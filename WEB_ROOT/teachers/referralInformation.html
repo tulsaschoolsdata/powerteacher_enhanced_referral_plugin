@@ -1,0 +1,91 @@
+<style type="text/css" title="text/css">
+	.dialogWidth { min-width: 640px;max-width: 640px; }
+	.obsLabel { width: 150px; display: inline-block; font-weight: bold; }
+	.incLabel { width: 150px; display: inline-block; font-weight: bold; }
+</style>
+
+<div class="box-round dialogWidth" id="incidenInfo~(gpv.incid)">
+~[if#ptpobs.~(gpv.tnid)#]
+	<h2>Observation Information (from PowerTeacher Pro)</h2>
+	~[tlist_sql;
+		SELECT
+			tn.datetime,
+			tn.escalateddate,
+			s.lastfirst,
+			tn.location,
+			tn.title,
+			tn.description
+		FROM teachernote tn
+		JOIN students s
+			ON tn.studentsdcid = s.dcid
+		WHERE tn.id = ~(gpv.tnid)]
+	<p><span class="obsLabel">Observation Date:</span>~(tn.datetime;d)</p>
+	<p><span class="obsLabel">Escalated Date:</span>~(tn.escalateddate;d)</p>
+	<p><span class="obsLabel">Student:</span>~(s.lastfirst)</p>
+	<p><span class="obsLabel">Location:</span>~(tn.location)</p>
+	<p><span class="obsLabel">Title:</span>~(tn.title)</p>
+	<p><span class="bold">Observation Description:</span></p>
+	<p>~(tn.description;ReplaceCRLFWithBR)</p>
+	[/tlist_sql]
+[/if#ptpobs]
+	
+	<h2>Referral Information - Incident ID ~(gpv.incid)</h2>
+	~[tlist_sql;
+		SELECT
+			i.last_modified_ts,
+			t.lastfirst,
+			i.incident_title,
+			i.incident_detail_desc
+		FROM incident i
+		LEFT OUTER JOIN teachers t
+			ON i.last_modified_by = t.id
+		WHERE i.incident_id = ~(gpv.incid)
+	]
+	<p><span class="incLabel">Last Update:</span>~(i.last_modified_ts;d)</p>
+	<p><span class="incLabel">Updated By:</span>~(t.lastfirst)</p>
+	<p><span class="incLabel">Incident Title:</span>~(i.incident_title)</p>
+	<p><span class="bold">Incident Description:</span></p>
+	<p>~(i.incident_detail_desc;ReplaceCRLFWithBR)</p>
+	[/tlist_sql]
+	<table border="0" cellpadding="0" cellspacing="0" class="grid" id="actionsList~(gpv.incid)">
+		<thead>
+			<tr>
+				<th>Action</th>
+				<th>Start</th>
+				<th>End</th>
+			</tr>
+			~[tlist_sql;
+				SELECT 
+					ilc.incident_category,
+					ina.action_plan_begin_dt,
+					ina.action_plan_end_dt
+				FROM incident_action ina
+				JOIN incident_detail ind
+					ON ina.action_incident_detail_id = ind.incident_detail_id
+				JOIN incident_lu_code ilc
+					ON ind.lu_code_id = ilc.lu_code_id
+				WHERE ina.incident_action_id IN 
+					(SELECT incident_action_id
+					FROM incident_person_action ipa
+					WHERE incident_person_detail_id IN
+						(SELECT incident_person_detail_id
+						FROM incident_person_detail
+						WHERE incident_person_role_id = 
+							(SELECT incident_person_role_id 
+							FROM incident_person_role 
+							WHERE studentid = ~(gpv.sid)
+								AND incident_id = ~(gpv.incid)
+							)
+						)
+					);nonemessage=<tr><td colspan="4">No actions or consequences have been assigned to the student for this escalated observation/teacher referral.</td></tr>
+			]
+			<tr>
+				<td>~(ilc.incident_category)</td>
+				<td>~(ina.action_plan_begin_dt;d)</td>
+				<td>~(ina.action_plan_end_dt;d)</td>
+			</tr>
+			[/tlist_sql]
+		</thead>
+	</table> 
+	
+</div>
