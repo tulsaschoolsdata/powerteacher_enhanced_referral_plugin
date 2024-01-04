@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Referral Review</title>
+		<!-- required scripts -->
+		~[wc:commonscripts] 
+		<!-- Required style sheets: screen.css, and print.css -->
+		<link href="/images/css/screen.css" rel="stylesheet" media="screen">
+		<link href="/images/css/print.css" rel="stylesheet" media="print">
+	</head> 
+	<body> 
+		~[wc:teachers_header_css] 
+		~[wc:teachers_navigation_css] 
+		<!-- sets active navigation tab --> 
+		~[SetPostValue:tabname=home] 
+		~[wc:teachers_nav_css] 
+		<h1>Referral Review</h1> 
+		<form name="navigation"> 
+		<!-- start of content area --> 
+		<div class="box-round"> 
+			<h2>Teacher referrals submitted by ~[x:username;firstlast] for the current school year</h2>
+			<table border="0" cellpadding="0" cellspacing="0" class="grid" id="referralList"> 
+				<thead> 
+					<tr> 
+						<th>Incident Date</th>
+						<th>Student</th>
+						<th>Title</th>
+						<th>Last Updated By</th>
+						<th>Last Updated Date</th>
+					</tr> 
+				</thead> 
+				<tbody>
+				~[tlist_sql;
+                    SELECT
+                        tn.id                                   AS TEACHERNOTEID,
+                        i.incident_id                           AS INCIDENTID,
+                        s.id                                    AS STUDENTID,
+                        s.first_name||' '||s.last_name			AS STUDENTNAME1,
+                        TO_CHAR(i.incident_ts,'mm/dd/yyyy')     AS INCIDENTDATE,
+                        CASE WHEN tn.escalateddate IS NULL THEN NULL ELSE ' *' END AS ESCALATED,
+                        s.lastfirst                             AS STUDENTNAME2,
+                        CASE WHEN tn.title IS NULL THEN i.incident_title ELSE tn.title END AS TITLE,
+                        CASE WHEN i.last_modified_by = i.created_by THEN '-' ELSE t.lastfirst END AS UPDATEDBY,
+                        CASE WHEN i.last_modified_by = i.created_by THEN '-' ELSE TO_CHAR(i.last_modified_ts,'mm/dd/yyyy') END AS UPDATEDON
+                    FROM incident i
+                    LEFT OUTER JOIN incident_detail idt
+                        ON i.incident_id = idt.incident_id
+                        AND idt.created_by = ~[x:userid]
+                        AND idt.lu_code_id IN (
+                            SELECT lu_code_id 
+                            FROM incident_lu_code 
+                            WHERE incident_category = 'Offender'
+                        )
+                    LEFT OUTER JOIN incident_person_role ipr
+                        ON i.incident_id = ipr.incident_id
+                        AND ipr.role_incident_detail_id = idt.incident_detail_id
+                        AND ipr.studentid IN (
+                            SELECT cc.studentid
+                            FROM sectionteacher st
+                            JOIN cc cc
+                                ON st.sectionid = cc.sectionid
+                            WHERE st.teacherid = ~[x:userid]
+                        )
+                    LEFT OUTER JOIN teachernote tn
+                        ON i.incident_id = tn.incidentid
+                    LEFT OUTER JOIN teachers t
+                        ON i.last_modified_by = t.id
+                    LEFT OUTER JOIN students s
+                        ON (ipr.studentid = s.id OR tn.studentsdcid = s.dcid)
+                    WHERE i.created_by = ~[x:userid]
+                        AND i.incident_ts BETWEEN TO_DATE('~(date.information;type=current_year_start)', 'MM/DD/YYYY') AND TO_DATE('~(date.information;type=current_year_end)', 'MM/DD/YYYY')
+                    ORDER BY i.incident_ts DESC;nonemessage=<tr><td colspan="4">No incident management teacher referrals have been submitted this year.</td></tr>;
+				]
+					<tr> 
+						<td style="text-align:center;"><a class="dialogM dockedDialog" href="referralInformation.html?tnid=~(TEACHERNOTEID)&incid=~(INCIDENTID)&sid=~(STUDENTID)" title="Referral Review - ~(STUDENTNAME1)">~(INCIDENTDATE)~(ESCALATED)</td>
+						<td>~(STUDENTNAME2)</td>
+						<td>~(TITLE)</td>
+						<td>~(UPDATEDBY)</td> 
+						<td>~(UPDATEDON)</td>  
+					</tr> 
+				[/tlist_sql]
+				</tbody> 
+			</table>
+			<p><b>*</b> - <em>Indicates referral is an escalated PowerTeacher Pro Observation</em></p>
+		</div>
+		<!-- end of content area --> 
+		~[wc:teachers_footer_css]
+	</body> 
+</html>

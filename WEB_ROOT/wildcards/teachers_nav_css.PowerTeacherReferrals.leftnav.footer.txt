@@ -1,0 +1,33 @@
+<!-- PowerTeacher Enhanced Referrals menu check fields -->
+<input type="hidden" id="ptNRcheck" value="~[prefschool:disablePTEnhancedReferralNew]">
+<input type="hidden" id="ptRRcheck" value="~[prefschool:disablePTEnhancedReferralStart]">
+
+<!-- PowerTeacher Enhanced Referrals menu script -->
+<script>
+	
+	if ( $j('#ptNRcheck').val() == 1 ) {
+		var ptNR = 'hide';
+	} else {
+		var ptNR = 'show';
+	}
+
+	if (  $j('#ptRRcheck').val() == 1 ) {
+		var ptRR = 'hide';
+	} else {
+		var ptRR = 'show';
+	}
+	
+	if ( ptNR == 'show' || ptRR == 'show' ) {
+		setTimeout(function(){
+			$j('#nav-main').append('<h2>Enhanced Referrals</h2><ul id="ptERMenu"></ul>');
+			if ( ptNR == 'show' ) {
+				$j('#ptERMenu').append('<li id="btn-navNewReferral"><a href="/teachers/referralNew.html">New Referral</a></li>');
+			}
+			if ( ptRR == 'show' ) {
+				$j('#ptERMenu').append('<li id="btn-navReferralReview"><a href="/teachers/referralReview.html">Referral Review</a></li>');
+			}
+		},750);
+
+	}
+	
+</script>
