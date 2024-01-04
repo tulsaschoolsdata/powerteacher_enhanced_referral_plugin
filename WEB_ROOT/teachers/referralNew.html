@@ -217,28 +217,6 @@
                                 <input type="text" id="incidentLocation" name="incidentLocation" value="" size="60">
                             </td>
                         </tr>
-                        <!-- ~[if.pref.use_incident_title_dropdown=1] -->
-                        <tr>
-                            <td>~[text]psx.html.teachers_studentpages.incidentManagement.incident_Title[/text]</td>
-                            <td>
-                                <select id="incidentTitle" class="required unvalidated tagged" name="incidentTitle"
-                                    value="">
-                                    <option value="" disabled selected></option>
-                                    <!-- 
-                                      ~[tlist_sql;
-                                        SELECT CodeSet.DisplayValue value, CodeSet.DisplayValue label
-                                        FROM CodeSet
-                                        WHERE CodeSet.CodeType = 'Incident Mgmt Title'
-                                      ] 
-                                  -->
-                                    <option value="~(value)">~(label)</option>
-                                    <!--
-                                    [/tlist_sql]
-                                  -->
-                                </select>
-                            </td>
-                        </tr>
-                        <!-- [else] -->
                         <tr>
                             <td>~[text]psx.html.teachers_studentpages.incidentManagement.incident_Title[/text]</td>
                             <td>
@@ -246,7 +224,6 @@
                                     name="incidentTitle" size="60" value=""><em>*</em>
                             </td>
                         </tr>
-                        <!-- [/if] -->
                         </tr>
                         <tr>
                             <td valign="top">
