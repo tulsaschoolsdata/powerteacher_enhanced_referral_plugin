@@ -1,230 +1,269 @@
 <!DOCTYPE html>
 <html>
-	<head>
-	    <title>New Teacher Referral</title>
-		<!-- required scripts -->
-		~[wc:commonscripts] 
-		<!-- Required style sheets: screen.css, and print.css -->
-		<script type="text/javascript" src="/scripts/timeentry_widget.js"></script>
-		<script type="text/javascript" src="/scripts/jquery.timeentry_ps.js"></script>
-		<!-- Student selection Autocomplete -->
-		<script>
-		    $j(function(){
-                var myStudents = [];
-                // This query pulls only students rostered to the teacher
-                // In my testing teachers can only submit referrals for students rostered to them
-                ~[tlist_sql;
+
+<head>
+    <title>New Teacher Referral</title>
+    <!-- required scripts -->
+    ~[wc:commonscripts]
+    <!-- Required style sheets: screen.css, and print.css -->
+    <script type="text/javascript" src="/scripts/timeentry_widget.js"></script>
+    <script type="text/javascript" src="/scripts/jquery.timeentry_ps.js"></script>
+    <!-- Student selection Autocomplete -->
+    <script>
+        $j(function () {
+            var myStudents = [];
+            // This query pulls only students rostered to the teacher
+            // In my testing teachers can only submit referrals for students rostered to them
+            ~[tlist_sql;
                     SELECT DISTINCT
-                        s.dcid,
-                        s.first_name||' '||s.last_name||' (ID '||s.student_number||', Grade '||s.grade_level||')' AS studentdata
-                    FROM 
+            s.dcid,
+                s.first_name || ' ' || s.last_name || ' (ID ' || s.student_number || ', Grade ' || s.grade_level || ')' AS studentdata
+            FROM 
                         sectionteacher st,
-                        cc cc,
-                        students s
-                    WHERE st.teacherid = ~[x:userid]
+                cc cc,
+                    students s
+                    WHERE st.teacherid = ~[x: userid]
                         AND st.sectionid = cc.sectionid
                         AND cc.studentid = s.id
                         AND cc.schoolid = ~(curschoolid)
                         AND s.enroll_status = 0
                 ]
-                
-                myStudents.push({
-                    "value": "~(dcid;json)",
-                    "label": "~(studentdata;json)"
-                });
-                [/tlist_sql]
+
+            myStudents.push({
+                "value": "~(dcid;json)",
+                "label": "~(studentdata;json)"
+            });
+            [/tlist_sql]
                 
                 $j('#incidentStudentName').focus()
                 
                 $j('#incidentStudentName').autocomplete({
-                    minLength: 0,
-                    source: myStudents,
-                    focus: function (event, ui) {
-                        $j('#incidentStudentName').val(ui.item.label);
-                        return false;
-                    },
-                    select: function (event, ui) {
-                        $j('#incidentStudentName').val(ui.item.label);
-                        $j('#incidentStudentDcid').val(ui.item.value);
-                        return false;
-                    }
-                });
-                
+                minLength: 0,
+                source: myStudents,
+                focus: function (event, ui) {
+                    $j('#incidentStudentName').val(ui.item.label);
+                    return false;
+                },
+                select: function (event, ui) {
+                    $j('#incidentStudentName').val(ui.item.label);
+                    $j('#incidentStudentDcid').val(ui.item.value);
+                    return false;
+                }
             });
-        </script>
-        <!-- This script adds students to the incident as the teacher adds participants or clears them as needed -->
-        <script>
-			
-			function studentRolesUpdate() {
-			    var newStudent = $j('#incidentStudentName').val();
-			    var newDCID = $j('#incidentStudentDcid').val();
-			    var newRole = $j('#theRoles').val();
-                if ( newDCID ) {
-                    $j('#invalidStudent').hide();
-    			    if ( newRole == 'Offender' ) {
-    			        $j('#offenderRequired').hide();
-                    }
-                    $j('#displayStudentRoles').append('<div id="'+newDCID+'" class="participantDisplayed"><span>'+newRole+' - '+newStudent+'</span>&nbsp;<a onclick="clearParticipants('+newDCID+')"><img src="/images/btn_minus.gif" style="margin:auto;"></div>')
-    			    $j('#studentRoles').append('<input type="hidden" class="participant" dcid="'+newDCID+'" role="'+newRole+'">');
-                } else {
-                    $j('#invalidStudent').show();
+
+        });
+    </script>
+    <!-- This script adds students to the incident as the teacher adds participants or clears them as needed -->
+    <script>
+
+        function studentRolesUpdate() {
+            var newStudent = $j('#incidentStudentName').val();
+            var newDCID = $j('#incidentStudentDcid').val();
+            var newRole = $j('#theRoles').val();
+            if (newDCID) {
+                $j('#invalidStudent').hide();
+                if (newRole == 'Offender') {
+                    $j('#offenderRequired').hide();
                 }
-			    $j('#incidentStudentDcid').val('');
-			    $j('#incidentStudentName').val('');
-			    $j('#incidentStudentName').focus();
-			};
-			
-			function clearParticipants(DCID){
-				$j('#'+DCID+'').remove();
-				$j('input[dcid="'+DCID+'"').remove();
-                $j('#incidentStudentDcid').val('');
-                $j('#incidentStudentName').val('');
-			    $j('#incidentStudentName').focus();
-			};
-			
-		</script>
-        <!-- Create the teacher referral incident -->
-        <script>
-            function createReferral() {
-                var participantsData = [];
-                let offenderCount = 0;
-                $j('.participant').each(function(){
-                    participantsData.push({
-                        studentDcid:$j(this).attr('dcid'),
-                        role:""+$j(this).attr('role')+""
-                    });
-                    if ( $j(this).attr('role') == 'Offender' ) {
-                        offenderCount++;
-                    }
+                $j('#displayStudentRoles').append('<div id="' + newDCID + '" class="participantDisplayed"><span>' + newRole + ' - ' + newStudent + '</span>&nbsp;<a onclick="clearParticipants(' + newDCID + ')"><img src="/images/btn_minus.gif" style="margin:auto;"></div>')
+                $j('#studentRoles').append('<input type="hidden" class="participant" dcid="' + newDCID + '" role="' + newRole + '">');
+            } else {
+                $j('#invalidStudent').show();
+            }
+            $j('#incidentStudentDcid').val('');
+            $j('#incidentStudentName').val('');
+            $j('#incidentStudentName').focus();
+        };
+
+        function clearParticipants(DCID) {
+            $j('#' + DCID + '').remove();
+            $j('input[dcid="' + DCID + '"').remove();
+            $j('#incidentStudentDcid').val('');
+            $j('#incidentStudentName').val('');
+            $j('#incidentStudentName').focus();
+        };
+
+    </script>
+    <!-- Create the teacher referral incident -->
+    <script>
+        function createReferral() {
+            var participantsData = [];
+            let offenderCount = 0;
+            $j('.participant').each(function () {
+                participantsData.push({
+                    studentDcid: $j(this).attr('dcid'),
+                    role: "" + $j(this).attr('role') + ""
                 });
-                if ( participantsData.length === 0 || offenderCount < 1 ) {
-                    $j('#offenderRequired').show();
-                } else {
-                    var input = $j('#incidentDate').val();
-                    var output = getWireDate(input);
-                    var jsonData = {
-                        "schoolNumber": ~(curschoolid),
-                        "incidentDate": output + ' ' + $j('#incidentTime').val(),
-                        "title": $j('#incidentTitle').val(),
-                        "description": $j('#incidentDetail').val(),
-                        "locationDescription": $j('#incidentLocation').val(),
-                        "teacherDcid": ~[x:userid],
-                        "participants": participantsData
-                    };
-                    // try to submit incident and get a response message
-                    var unsuccessMsg='Unsuccessful incident submission.';
-                    var successMsg='Successfully submitted the incident.';
-                    loadingDialog();
-                    psAjax({
-                        headers: { 
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'},
-                        type: 'post',
-                        url: '/ws/signed/incident',
-                        data: JSON.stringify(jsonData),
-                        dataType: 'json',
-                        success: function(data, status) {
-                            closeLoading();
-                            if (data.status == "SUCCESS") {
-    			  			  	// if the incident posted succesfully, go to the referral review page
-    			  			  	window.location.href = "referralReview.html"
-                            }
-                        },
-                        error: function(jqXHR, status, errorThrown) {
-                            $j('#errorMessage').show();
-                            closeLoading();
-                        }
-                    })
+                if ($j(this).attr('role') == 'Offender') {
+                    offenderCount++;
                 }
-            };
-        </script>
-		<link href="/images/css/screen.css" rel="stylesheet" media="screen">
-		<link href="/images/css/print.css" rel="stylesheet" media="print">
-		<style>
-		    .participantDisplayed {
-		        display: block;
-		    }
-		    
-		    .participantDisplayed img {
-		        vertical-align: text-top;
-		    }
-		</style>
-	</head> 
-	<body> 
-		~[wc:teachers_header_css] 
-		~[wc:teachers_navigation_css] 
-		<!-- sets active navigation tab --> 
-		~[SetPostValue:tabname=home] 
-		~[wc:teachers_nav_css] 
-		<h1>New Teacher Referral</h1> 
-		<form name="navigation">
-			<!-- start of content area --> 
-			<div class="box-round">
-				<!-- Start of shaded content table -->
-				<div id="errorMessage" style="display:none;" class="feedback-error">There was an error. Please reload the page and try again.</div>
-				<div id="offenderRequired" style="display:none;" class="feedback-error">You must add at least one student with the Offender role.</div>
-				<div id="invalidStudent" style="display:none;" class="feedback-error">Student participant selection was empty or invalid.</div>
-				<form id="newReferralForm" class="validatedForm ng-pristine ng-valid" data-parsed="true">
-					<h2>Add an incident referral for students rostered to you at ~(schoolname)</h2>
-					<table class="linkDescList">
-						<tbody>
-                            <tr>
-                                <td>~[text]psx.html.teachers_studentpages.incidentManagement.incident_Date[/text]</td>
-                                <td>
-                                    <input type="text" class="psDateWidget hasDatePicker required" data-mindate="" data-maxdate="~[datefmt:MM/dd/yyyy]" id="incidentDate" name="incidentDate" value="~[short.date]">
-                                    <span class="timeEntry_wrap"><input type="text" id="incidentTime" class="timeEntry required" value="~[time]"></span>
-                                </td>
-                            </tr>
-							<tr>
-								<td>Participant Selection</td>
-								<td>
-								    <input type="text" name="incidentStudentName" id="incidentStudentName" size="60" autofocus>
-								</td>
-							</tr>
-							<tr>
-							    <td>Participant Role</td>
-							    <td>
-							        <select id="theRoles" name="theRoles">
-							            <option value="Offender">Offender</option>
-							            <option value="Reporter">Reporter</option>
-							            <option value="Victim">Victim</option>
-							            <option value="Witness">Witness</option>
-							        </select>&nbsp;&nbsp;<a class="button" onclick="studentRolesUpdate()">Add To Incident</a>
-								    <input type="hidden" name="incidentStudentDcid" id="incidentStudentDcid" value="" >
-							    </td>
-							</tr>
-							<tr>
-							    <td>Student(s) Being Referred</td>
-							    <td>
-							        <div id="displayStudentRoles"></div>
-							        <div id="studentRoles" style="dispaly:none;"></div>
-							        </td>
-							</tr>
-							<tr>
-                                <td>Location Description</td>
-                                <td>
-                                    <input type="text" id="incidentLocation" name="incidentLocation" value="" size="60" >
-                                </td>
-                            </tr>
-							<tr>
-								<td>~[text]psx.html.teachers_studentpages.incidentManagement.incident_Title[/text]</td>
-								<td>
-									<input type="text" id="incidentTitle" class="required unvalidated tagged" name="incidentTitle" size="60" value=""><em>*</em>
-								</td>
-							</tr>
-							<tr>
-								<td valign="top">~[text]psx.html.teachers_studentpages.incidentManagement.incident_Detail[/text]</td>
-								<td><textarea id="incidentDetail" class="required unvalidated tagged" name="incidentDetail" rows="6" cols="53"></textarea><em>*</em></td>
-							</tr>
-						</tbody>
-					</table>
-					<div class="button-row">
-						<input type="hidden" name="ac" value="submitincident">
-						<button type="submit" onclick="createReferral(); return false;">Submit</button>
-					</div>
-				</form>
-			</div>
-			<!-- end of content area --> 
-		~[wc:teachers_footer_css]
-	</body> 
+            });
+            if (participantsData.length === 0 || offenderCount < 1) {
+                $j('#offenderRequired').show();
+            } else {
+                var input = $j('#incidentDate').val();
+                var output = getWireDate(input);
+                var jsonData = {
+                    "schoolNumber": ~(curschoolid),
+                    "incidentDate": output + ' ' + $j('#incidentTime').val(),
+                    "title": $j('#incidentTitle').val(),
+                    "description": $j('#incidentDetail').val(),
+                    "locationDescription": $j('#incidentLocation').val(),
+                    "teacherDcid": ~[x: userid],
+                    "participants": participantsData
+                };
+                // try to submit incident and get a response message
+                var unsuccessMsg = 'Unsuccessful incident submission.';
+                var successMsg = 'Successfully submitted the incident.';
+                loadingDialog();
+                psAjax({
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    type: 'post',
+                    url: '/ws/signed/incident',
+                    data: JSON.stringify(jsonData),
+                    dataType: 'json',
+                    success: function (data, status) {
+                        closeLoading();
+                        if (data.status == "SUCCESS") {
+                            // if the incident posted succesfully, go to the referral review page
+                            window.location.href = "referralReview.html"
+                        }
+                    },
+                    error: function (jqXHR, status, errorThrown) {
+                        $j('#errorMessage').show();
+                        closeLoading();
+                    }
+                })
+            }
+        };
+    </script>
+    <link href="/images/css/screen.css" rel="stylesheet" media="screen">
+    <link href="/images/css/print.css" rel="stylesheet" media="print">
+    <style>
+        .participantDisplayed {
+            display: block;
+        }
+
+        .participantDisplayed img {
+            vertical-align: text-top;
+        }
+    </style>
+</head>
+
+<body>
+    ~[wc:teachers_header_css]
+    ~[wc:teachers_navigation_css]
+    <!-- sets active navigation tab -->
+    ~[SetPostValue:tabname=home]
+    ~[wc:teachers_nav_css]
+    <h1>New Teacher Referral</h1>
+    <form name="navigation">
+        <!-- start of content area -->
+        <div class="box-round">
+            <!-- Start of shaded content table -->
+            <div id="errorMessage" style="display:none;" class="feedback-error">There was an error. Please reload the
+                page and try again.</div>
+            <div id="offenderRequired" style="display:none;" class="feedback-error">You must add at least one student
+                with the Offender role.</div>
+            <div id="invalidStudent" style="display:none;" class="feedback-error">Student participant selection was
+                empty or invalid.</div>
+            <form id="newReferralForm" class="validatedForm ng-pristine ng-valid" data-parsed="true">
+                <h2>Add an incident referral for students rostered to you at ~(schoolname)</h2>
+                <table class="linkDescList">
+                    <tbody>
+                        <tr>
+                            <td>~[text]psx.html.teachers_studentpages.incidentManagement.incident_Date[/text]</td>
+                            <td>
+                                <input type="text" class="psDateWidget hasDatePicker required" data-mindate=""
+                                    data-maxdate="~[datefmt:MM/dd/yyyy]" id="incidentDate" name="incidentDate"
+                                    value="~[short.date]">
+                                <span class="timeEntry_wrap"><input type="text" id="incidentTime"
+                                        class="timeEntry required" value="~[time]"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Participant Selection</td>
+                            <td>
+                                <input type="text" name="incidentStudentName" id="incidentStudentName" size="60"
+                                    autofocus>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Participant Role</td>
+                            <td>
+                                <select id="theRoles" name="theRoles">
+                                    <option value="Offender">Offender</option>
+                                    <option value="Reporter">Reporter</option>
+                                    <option value="Victim">Victim</option>
+                                    <option value="Witness">Witness</option>
+                                </select>&nbsp;&nbsp;<a class="button" onclick="studentRolesUpdate()">Add To
+                                    Incident</a>
+                                <input type="hidden" name="incidentStudentDcid" id="incidentStudentDcid" value="">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Student(s) Being Referred</td>
+                            <td>
+                                <div id="displayStudentRoles"></div>
+                                <div id="studentRoles" style="dispaly:none;"></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Location Description</td>
+                            <td>
+                                <input type="text" id="incidentLocation" name="incidentLocation" value="" size="60">
+                            </td>
+                        </tr>
+                        <!-- ~[if.pref.use_incident_title_dropdown=1] -->
+                        <tr>
+                            <td>~[text]psx.html.teachers_studentpages.incidentManagement.incident_Title[/text]</td>
+                            <td>
+                                <select id="incidentTitle" class="required unvalidated tagged" name="incidentTitle"
+                                    value="">
+                                    <option value="" disabled selected></option>
+                                    <!-- 
+                                      ~[tlist_sql;
+                                        SELECT CodeSet.DisplayValue value, CodeSet.DisplayValue label
+                                        FROM CodeSet
+                                        WHERE CodeSet.CodeType = 'Incident Mgmt Title'
+                                      ] 
+                                  -->
+                                    <option value="~(value)">~(label)</option>
+                                    <!--
+                                    [/tlist_sql]
+                                  -->
+                                </select>
+                            </td>
+                        </tr>
+                        <!-- [else] -->
+                        <tr>
+                            <td>~[text]psx.html.teachers_studentpages.incidentManagement.incident_Title[/text]</td>
+                            <td>
+                                <input type="text" id="incidentTitle" class="required unvalidated tagged"
+                                    name="incidentTitle" size="60" value=""><em>*</em>
+                            </td>
+                        </tr>
+                        <!-- [/if] -->
+                        </tr>
+                        <tr>
+                            <td valign="top">
+                                ~[text]psx.html.teachers_studentpages.incidentManagement.incident_Detail[/text]</td>
+                            <td><textarea id="incidentDetail" class="required unvalidated tagged" name="incidentDetail"
+                                    rows="6" cols="53"></textarea><em>*</em></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="button-row">
+                    <input type="hidden" name="ac" value="submitincident">
+                    <button type="submit" onclick="createReferral(); return false;">Submit</button>
+                </div>
+            </form>
+        </div>
+        <!-- end of content area -->
+        ~[wc:teachers_footer_css]
+</body>
+
 </html>

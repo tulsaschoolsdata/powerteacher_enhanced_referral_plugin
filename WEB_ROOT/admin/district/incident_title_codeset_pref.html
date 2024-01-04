@@ -1,7 +1,7 @@
 <script>
-  ; (function ($) {
+  ;(function ($) {
     $(function () {
-      var $tr = $('form table:not(#d63UndropCCTable) tbody tr td:contains("~[text:psx.html.admin_district.misc-district.enable_incident_management_in_teacher_portal]")').closest('tr');
+      var $tr = $('form table tbody tr td:contains("~[text:psx.html.admin_district.misc-district.enable_incident_management_in_teacher_portal]")').closest('tr');
 
       var $pref_input = $('#incident-title-dropdown-pref tbody').children(':first');
 
@@ -19,7 +19,9 @@
         return errors;
       }
 
-      if (tps_custom.load(validator, "Adding enable teacher portal incident title dropdown.")) {
+      if (!validator) {
+        console.log(errors);
+      } else {
         $pref_input.insertAfter($tr).removeClass();
       }
     });
