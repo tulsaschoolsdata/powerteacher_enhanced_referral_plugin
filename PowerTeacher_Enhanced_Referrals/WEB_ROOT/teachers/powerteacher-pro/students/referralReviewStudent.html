@@ -1,0 +1,72 @@
+<div data-title="Referral Review"
+     data-param-frn="studentFrn?"
+     data-linked-from-students="true"
+	 class="external-page"
+     data-pss-restyle>
+    <div data-pss-sticky-header-group="StickyHeaderGroup">
+        <div id="content-selector" class="content-selector">
+	        <div data-pss-student-navigation="Referral Review"></div>
+        </div>
+    	<div data-pss-relink>
+    		~[if#ptERreferralReviewStudent.~[prefschool:disablePTEnhancedReferralStudent]#1]
+    			<h2>Teacher referrals submitted by ~[x:username;firstlast] for ~(first_name) ~(last_name) for the current school year</h2>
+    			<br>
+    			<table border="0" cellpadding="0" cellspacing="0" class="grid" id="referralList"> 
+    				<thead> 
+    					<tr> 
+    						<th>Incident Date</th>
+    						<th>Title</th>
+    						<th>Last Updated By</th>
+    						<th>Last Updated Date</th>
+    					</tr> 
+    				</thead> 
+    				<tbody>
+    				~[tlist_sql;
+                        SELECT
+                            tn.id                                   AS TEACHERNOTEID,
+                            i.incident_id                           AS INCIDENTID,
+                            s.id                                    AS STUDENTID,
+                            TO_CHAR(i.incident_ts,'mm/dd/yyyy')     AS INCIDENTDATE,
+                            CASE WHEN tn.escalateddate IS NULL THEN NULL ELSE ' *' END AS ESCALATED,
+                            CASE WHEN tn.title IS NULL THEN i.incident_title ELSE tn.title END AS TITLE,
+                            CASE WHEN i.last_modified_by = i.created_by THEN '-' ELSE t.lastfirst END AS UPDATEDBY,
+                            CASE WHEN i.last_modified_by = i.created_by THEN '-' ELSE TO_CHAR(i.last_modified_ts,'mm/dd/yyyy') END AS UPDATEDON
+                        FROM incident i
+                        LEFT OUTER JOIN incident_detail idt
+                            ON i.incident_id = idt.incident_id
+                            AND idt.created_by = ~[x:userid]
+                            AND idt.lu_code_id IN (
+                                SELECT lu_code_id 
+                                FROM incident_lu_code 
+                                WHERE incident_category = 'Offender'
+                            )
+                        LEFT OUTER JOIN incident_person_role ipr
+                            ON i.incident_id = ipr.incident_id
+                            AND ipr.role_incident_detail_id = idt.incident_detail_id
+                        LEFT OUTER JOIN teachernote tn
+                            ON i.incident_id = tn.incidentid
+                        LEFT OUTER JOIN teachers t
+                            ON i.last_modified_by = t.id
+                        LEFT OUTER JOIN students s
+                            ON (ipr.studentid = s.id OR tn.studentsdcid = s.dcid)
+                        WHERE i.created_by = ~[x:userid]
+                            AND ipr.studentid = ~(curstudid)
+                            AND i.incident_ts BETWEEN TO_DATE('~(date.information;type=current_year_start)', 'MM/DD/YYYY') AND TO_DATE('~(date.information;type=current_year_end)', 'MM/DD/YYYY')
+                        ORDER BY i.incident_ts DESC;;nonemessage=<tr><td colspan="4">No incident management teacher referrals have been submitted this year.</td></tr>;
+    				]
+    					<tr> 
+    						<td style="text-align:center;"><a href="referralInformation.html?tnid=~(TEACHERNOTEID)&incid=~(INCIDENTID)&sid=~(STUDENTID)" title="Referral Review">~(INCIDENTDATE)~(ESCALATED)</td>
+    						<td>~(TITLE)</td>
+    						<td>~(UPDATEDBY)</td> 
+    						<td>~(UPDATEDON)</td>  
+    					</tr> 
+    				[/tlist_sql]
+    				</tbody> 
+    			</table>
+    			<p><b>*</b> - <em>Indicates referral is an escalated PowerTeacher Pro Observation</em></p>
+    			[else#ptERreferralReviewStudent]
+    			<p>Your school has disabled the <em>PowerTeacher - Enhanced Referrals</em> student Referral Review page.</p>
+    			[/if#ptERreferralReviewStudent]
+    	</div>
+    </div>
+</div>

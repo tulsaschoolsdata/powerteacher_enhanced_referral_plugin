@@ -1,0 +1,38 @@
+<div id="PTReferralSettings" style="display:none;">
+	<table border="0" cellspacing="0" cellpadding="4">
+		<tbody id="settings2Insert">
+		    <tr class="evenRow">
+		        <td colspan="2">&nbsp;</td>
+            </tr>
+		    <tr>
+				<th>PowerTeacher - Enhanced Referral Settings</th>
+				<th>Value</th>
+			</tr>
+			<tr class="oddRow">
+				<td class="bold">Disable New Referral page in PowerTeacher</td>
+				<td>
+					<input type="checkbox" name="[prefschool]disablePTEnhancedReferralNew" value="1">
+				</td>
+			</tr>
+			<tr class="evenRow">
+				<td class="bold">Disable Referral Review page (start page) in PowerTeacher</td>
+				<td>
+					<input type="checkbox" name="[prefschool]disablePTEnhancedReferralStart" value="1">
+				</td>
+			</tr>
+			<tr class="oddRow">
+				<td class="bold">Disable Referral Review page (student profile) in PowerTeacher &amp; PowerTeacher Pro</td>
+				<td>
+					<input type="checkbox" name="[prefschool]disablePTEnhancedReferralStudent" value="1">
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+
+<script>
+	$j(document).ready(function(){
+		$j('.box-round table:first').append($j('#settings2Insert').html());
+		$j('#PTReferralSettings').remove();
+	});
+</script>
