@@ -1,6 +1,7 @@
 <script>
-  ;(function ($) {
+  ;(function ($, tps_custom) {
     $(function () {
+      if (!tps_custom) return;
       var $tr = $('form table tbody tr td:contains("~[text:psx.html.admin_district.misc-district.enable_incident_management_in_teacher_portal]")').closest('tr');
 
       var $pref_input = $('#incident-title-dropdown-pref tbody').children(':first');
@@ -19,13 +20,11 @@
         return errors;
       }
 
-      if (!validator) {
-        console.log(errors);
-      } else {
+      if (tps_custom.load(validator, "Adding enhanced teacher referral")) {
         $pref_input.insertAfter($tr).removeClass();
       }
     });
-  })(jQuery);
+  })(jQuery, window.tps_custom);
 </script>
 
 <style>
