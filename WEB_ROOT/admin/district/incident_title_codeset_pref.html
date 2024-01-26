@@ -1,0 +1,43 @@
+<script>
+  ;(function ($, tps_custom) {
+    $(function () {
+      if (!tps_custom) return;
+      var $tr = $('form table tbody tr td:contains("~[text:psx.html.admin_district.misc-district.enable_incident_management_in_teacher_portal]")').closest('tr');
+
+      var $pref_input = $('#incident-title-dropdown-pref tbody').children(':first');
+
+      function validator() {
+        var errors = [];
+
+        if ($tr.length !== 1) {
+          errors.push('should be exactly one $tr');
+        }
+
+        if ($pref_input.length !== 1) {
+          errors.push('should be exactly one $pref_input');
+        }
+
+        return errors;
+      }
+
+      if (tps_custom.load(validator, "Adding enhanced teacher referral")) {
+        $pref_input.insertAfter($tr).removeClass();
+      }
+    });
+  })(jQuery, window.tps_custom);
+</script>
+
+<style>
+  .tps_custom--hidden {
+    display: none;
+  }
+</style>
+
+<table id="incident-title-dropdown-pref">
+  <tbody>
+    <tr class="tps_custom--hidden">
+      <td class="bold">Enable Title Codeset Dropdown for PowerTeacher Referral Plugin</td>
+      <td><input type="checkbox" name="[pref]use_incident_title_dropdown" value="1" /></td>
+    </tr>
+  </tbody>
+</table>
