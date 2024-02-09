@@ -25,8 +25,8 @@
                 left join courses c on cc.course_number = c.course_number
                 inner join terms t on cc.termid = t.id
                 join students s on cc.studentid = s.id
-                where st.teacherid = 141150
-                and cc.schoolid = 730
+                where st.teacherid = ~(curtchrid)
+                and cc.schoolid = ~(curschoolid)
                 and cc.termid >= 100 * (substr(extract(year from add_months(sysdate, -6)), -2) + 10)
                 
                 order by s.lastfirst)
