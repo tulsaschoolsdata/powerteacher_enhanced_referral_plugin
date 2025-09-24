@@ -15,18 +15,25 @@
             // This query pulls only students rostered to the teacher
             // In my testing teachers can only submit referrals for students rostered to them
             ~[tlist_sql;
-                    SELECT DISTINCT
-            s.dcid,
-                s.first_name || ' ' || s.last_name || ' (ID ' || s.student_number || ', Grade ' || s.grade_level || ')' AS studentdata
-            FROM 
-                        sectionteacher st,
-                cc cc,
-                    students s
-                    WHERE st.teacherid = ~[x: userid]
-                        AND st.sectionid = cc.sectionid
-                        AND cc.studentid = s.id
-                        AND cc.schoolid = ~(curschoolid)
-                        AND s.enroll_status = 0
+                with sl as (select distinct st.sectionid, s.dcid
+                , s.first_name || ' ' || s.last_name || ' (ID ' || s.student_number || ', Grade ' || s.grade_level || ')' AS studentdata
+                    , s.lastfirst
+                    , ROW_NUMBER() OVER(PARTITION BY s.dcid order by s.dcid) r 
+                from sectionteacher st
+                left join cc on st.sectionid = cc.sectionid
+                inner join sections se on cc.sectionid = se.id
+                left join courses c on cc.course_number = c.course_number
+                inner join terms t on cc.termid = t.id
+                join students s on cc.studentid = s.id
+                where st.teacherid = ~(curtchrid)
+                and cc.schoolid = ~(curschoolid)
+                and cc.termid >= 100 * (substr(extract(year from add_months(sysdate, -6)), -2) + 10)
+                
+                order by s.lastfirst)
+                
+                SELECT sl.dcid, sl.studentdata
+                    FROM(SELECT * FROM sl
+                WHERE sl.r = 1) sl
                 ]
 
             myStudents.push({
@@ -217,13 +224,35 @@
                                 <input type="text" id="incidentLocation" name="incidentLocation" value="" size="60">
                             </td>
                         </tr>
+                        <!-- ~[if.pref.use_incident_title_dropdown=1] -->
                         <tr>
                             <td>~[text]psx.html.teachers_studentpages.incidentManagement.incident_Title[/text]</td>
                             <td>
-                                <input type="text" id="incidentTitle" class="required unvalidated tagged"
-                                    name="incidentTitle" size="60" value=""><em>*</em>
+                                <select id="incidentTitle" class="required unvalidated tagged" name="incidentTitle" value="">
+                                    <option value="" disabled selected></option>
+                                    <!-- 
+                                                              ~[tlist_sql;
+                                                                SELECT CodeSet.DisplayValue value, CodeSet.DisplayValue label
+                                                                FROM CodeSet
+                                                                WHERE CodeSet.CodeType = 'Incident Mgmt Title'
+                                                              ] 
+                                                          -->
+                                    <option value="~(value)">~(label)</option>
+                                    <!--
+                                                            [/tlist_sql]
+                                                          -->
+                                </select>
                             </td>
                         </tr>
+                        <!-- [else] -->
+                        <tr>
+                            <td>~[text]psx.html.teachers_studentpages.incidentManagement.incident_Title[/text]</td>
+                            <td>
+                                <input type="text" id="incidentTitle" class="required unvalidated tagged" name="incidentTitle" size="60"
+                                    value=""><em>*</em>
+                            </td>
+                        </tr>
+                        <!-- [/if] -->
                         </tr>
                         <tr>
                             <td valign="top">
